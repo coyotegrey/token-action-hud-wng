@@ -8,9 +8,9 @@
       "url": "https://github.com/coyotegrey"
     }
   ],
-  "url": "This is auto replaced",
+  "url": "#{URL}#",
   "flags": {},
-  "version": "This is auto replaced",
+  "version": "#{VERSION}#",
   "compatibility": {
     "minimum": "12",
     "verified": "12.331"
@@ -62,9 +62,10 @@
     }
   },
   "socket": false,
-  "manifest": "This is auto replaced",
-  "download": "This is auto replaced",
-  "readme": "n/a",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#",
+  "license": "LICENSE",
+  "readme": "README.md",
   "protected": false,
   "coreTranslation": false,
   "library": false
