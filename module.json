@@ -1,0 +1,71 @@
+{
+  "id": "token-action-hud-wng",
+  "title": "Token Action HUD Wrath & Glory",
+  "description": "Token Action HUD is a repositionable HUD of actions for a selected token",
+  "authors": [
+    {
+      "name": "coyotegrey",
+      "url": "https://github.com/coyotegrey"
+    }
+  ],
+  "url": "This is auto replaced",
+  "flags": {},
+  "version": "This is auto replaced",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12.331"
+  },
+  "esmodules": [
+    "./scripts/init.js"
+  ],
+  "scripts": [
+  ],
+  "styles": [
+    "./styles/tah-wng-style.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ],
+  "packs": [],
+  "relationships": {
+    "systems": [
+      {
+        "id": "wrath-and-glory",
+        "type": "system",
+        "compatibility": [
+          {
+            "minimum": "6.0.0",
+            "verified": "6.0.5"
+          }
+        ]
+      }
+    ],
+    "requires": [
+      {
+        "id": "token-action-hud-core",
+        "type": "module",
+        "compatibility": [
+          {
+            "minimum": "2.0.0",
+            "verified": "2.0.11"
+          }
+        ]
+      }
+    ],
+    "optional": [],
+    "flags": {
+      "optional": []
+    }
+  },
+  "socket": false,
+  "manifest": "This is auto replaced",
+  "download": "This is auto replaced",
+  "readme": "n/a",
+  "protected": false,
+  "coreTranslation": false,
+  "library": false
+}

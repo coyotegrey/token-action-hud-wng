@@ -1,0 +1,22 @@
+{
+  "tokenActionHud": {
+    "wng": {
+      "activate": "Activate",
+      "combat": "Combat",
+      "condition": "Condition",
+      "conditions": "Conditions",
+      "deactivate": "Deactivate",
+      "gear": "Gear",
+      "skill": "Skill",
+      "stats": "Stats",
+      "talents": "Talents",
+      "tests": "Tests",
+      "settings": {
+        "displayUnequipped": {
+          "hint": "Choose whether to display unequipped items on the HUD",
+          "name": "Display Unequipped"
+        }
+      }
+    }
+  }
+}
