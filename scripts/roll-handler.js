@@ -142,7 +142,12 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          */
         #handleItemAction (event, actor, actionId) {
             const item = actor.items.get(actionId);
-            item.sendToChat(event);
+            if (!this.isRightClick) {
+                item.sendToChat(event);
+            } else if (item.system.equippable) {
+                item.system.equipped = !item.system.equipped;
+                return Hooks.callAll('forceUpdateTokenActionHud');
+            }
         }
 
         /**
