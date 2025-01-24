@@ -57,6 +57,6 @@ If you wish to contact me for any reason, reach me out on Discord using my tag: 
 
 ## License
 
-Token Action HUD Wrath & Glory is a module for Foundry VTT by coyotegrey and is licensed under a [MIT License](https://github.com/coyotegrey/token-action-hud-wng/blob/master/LICENSE).
+Token Action HUD Wrath & Glory is a module for Foundry VTT by coyotegrey and is licensed under an [MIT License](https://github.com/coyotegrey/token-action-hud-wng/blob/master/LICENSE).
 
 This work is licensed under Foundry Virtual Tabletop [EULA - Limited License for Package Development from March 2, 2023](https://foundryvtt.com/article/license/).
