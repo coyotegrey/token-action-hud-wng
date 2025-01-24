@@ -25,7 +25,8 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
             'corruption': {'name': coreModule.api.Utils.i18n('ROLL.CORRUPTION')},
             'mutation': {'name': coreModule.api.Utils.i18n('ROLL.MUTATION')},
             'fear': {'name': coreModule.api.Utils.i18n('ROLL.FEAR')},
-            'terror': {'name': coreModule.api.Utils.i18n('ROLL.TERROR')}
+            'terror': {'name': coreModule.api.Utils.i18n('ROLL.TERROR')},
+            'influence': {'name': coreModule.api.Utils.i18n('ROLL.INFLUENCE')}
         }));
 
         async buildSystemActions (groupIds) {
@@ -259,12 +260,17 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
 
                 const img = coreModule.api.Utils.getImage(itemData.img);
 
+                //const statusFound = this.actor.statuses.find(s => s == id);
+                const active = actionTypeId == 'gear' && itemData.system.isEquipped ? ' active' : '';
+                const cssClass = `toggle${active}`; 
+
                 return {
                     id,
                     name,
                     listName,
                     encodedValue,
-                    img
+                    img,
+                    cssClass
                 }
             })
         }
