@@ -129,7 +129,8 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
                 for (const itemId in statData) {
                     const id = itemId;
                     const itemData = statData[itemId];
-                    const name = `${coreModule.api.Utils.i18n(itemData.label)} (${itemData.total})`;
+                    const label = itemData.label || (statId == "attribute" ? WNG.attributes[itemId] : WNG.skills[itemId]);
+                    const name = `${coreModule.api.Utils.i18n(label)} (${itemData.total})`;
                     const actionTypeName = coreModule.api.Utils.i18n(ACTION_TYPE[actionTypeId]);
                     const listName = `${actionTypeName ? `${actionTypeName}: ` : ''}${name}`;
                     const encodedValue = [actionTypeId, id].join(this.delimiter);
