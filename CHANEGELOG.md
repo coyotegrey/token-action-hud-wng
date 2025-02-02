@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.1
+- Fixes #4: attribute and skill names are blank in the stats menu unless an official archetype is added.
+
 ## v1.0.0
 * Initial release
 - Module currently offers: 
