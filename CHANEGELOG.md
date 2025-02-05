@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.2
+- Cleaned up unused files.
+- Attempting to clean up manifest loop.
+
 ## v1.0.1
 - Fixes #4: attribute and skill names are blank in the stats menu unless an official archetype is added.
 
