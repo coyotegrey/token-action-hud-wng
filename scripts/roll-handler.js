@@ -79,7 +79,7 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
                     break;
                 case 'talent':
                 case 'gear':
-                    this.#handleItemAction(event, actor, actionId);
+                    await this.#handleItemAction(event, actor, actionId);
                     break
                 case 'condition':
                     this.#handleConditionAction(event, actor, actionId);
@@ -140,12 +140,12 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @param {object} actor    The actor
          * @param {string} actionId The action id
          */
-        #handleItemAction (event, actor, actionId) {
+        async #handleItemAction (event, actor, actionId) {
             const item = actor.items.get(actionId);
             if (!this.isRightClick) {
-                item.sendToChat(event);
+                item.postItem();
             } else if (item.system.equippable) {
-                item.system.equipped = !item.system.equipped;
+                await item.update({ 'system.equipped': !item.system.equipped });
                 return Hooks.callAll('forceUpdateTokenActionHud');
             }
         }
