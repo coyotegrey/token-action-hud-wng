@@ -5,37 +5,30 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
      * Extends Token Action HUD Core's RollHandler class and handles action events triggered when an action is clicked
      */
     RollHandler = class RollHandler extends coreModule.api.RollHandler {
+        #characterTypes = ['agent', 'threat'];
+
         /**
          * Handle action click
          * Called by Token Action HUD Core when an action is left or right-clicked
          * @override
-         * @param {object} event        The event
-         * @param {string} encodedValue The encoded value
+         * @param {object} event The event
          */
-        async handleActionClick (event, encodedValue) {
-            const [actionTypeId, actionId] = encodedValue.split('|');
-
-            const renderable = ['item'];
-
-            if (renderable.includes(actionTypeId) && this.isRenderItem()) {
-                return this.doRenderItem(this.actor, actionId);
-            }
-
-            const knownCharacters = ['character']
+        async handleActionClick (event) {
+            const { actionType, actionId } = this.action?.system ?? {};
+            if (!actionType) return;
 
             // If single actor is selected
             if (this.actor) {
-                await this.#handleAction(event, this.actor, this.token, actionTypeId, actionId);
+                await this.#handleAction(event, this.actor, this.token, actionType, actionId);
                 return;
             }
 
-            const controlledTokens = canvas.tokens.controlled
-                .filter((token) => knownCharacters.includes(token.actor?.type));
+            const controlledTokens = coreModule.api.Utils.getControlledTokens()
+                .filter((token) => this.#characterTypes.includes(token.actor?.type));
 
             // If multiple actors are selected
             for (const token of controlledTokens) {
-                const actor = token.actor;
-                await this.#handleAction(event, actor, token, actionTypeId, actionId);
+                await this.#handleAction(event, token.actor, token, actionType, actionId);
             }
         }
 
@@ -43,10 +36,9 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * Handle action hover
          * Called by Token Action HUD Core when an action is hovered on or off
          * @override
-         * @param {object} event        The event
-         * @param {string} encodedValue The encoded value
+         * @param {object} event The event
          */
-        async handleActionHover (event, encodedValue) {};
+        async handleActionHover (event) {}
 
         /**
          * Handle group click
@@ -55,7 +47,7 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @param {object} event The event
          * @param {object} group The group
          */
-        async handleGroupClick (event, group) {};
+        async handleGroupClick (event, group) {}
 
         /**
          * Handle action
@@ -69,45 +61,45 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
         async #handleAction (event, actor, token, actionTypeId, actionId) {
             switch (actionTypeId) {
                 case 'combat':
-                    this.#handleCombatAction(event, actor, actionId);
+                    await this.#handleCombatAction(event, actor, actionId);
                     break;
                 case 'attribute':
-                    this.#handleAttributeAction(event, actor, actionId);
+                    await this.#handleAttributeAction(event, actor, actionId);
                     break;
                 case 'skill':
-                    this.#handleSkillAction(event, actor, actionId);
+                    await this.#handleSkillAction(event, actor, actionId);
                     break;
                 case 'talent':
                 case 'gear':
                     await this.#handleItemAction(event, actor, actionId);
-                    break
+                    break;
                 case 'condition':
-                    this.#handleConditionAction(event, actor, actionId);
-                    break
+                    await this.#handleConditionAction(event, actor, actionId);
+                    break;
                 case 'utility':
-                    this.#handleUtilityAction(actor, token, actionId);
-                    break
+                    await this.#handleUtilityAction(actor, token, actionId);
+                    break;
             }
         }
 
         /**
          * Handle combat action
+         * @private
+         * @param {object} event    The event
+         * @param {object} actor    The actor
+         * @param {string} actionId The action id
          */
-        #handleCombatAction (event, actor, actionId) {
-            const itemType = actor.items.get(actionId)?.type || actionId;
-            switch (itemType) {
+        async #handleCombatAction (event, actor, actionId) {
+            const item = actor.items.get(actionId);
+            switch (item?.type) {
                 case 'weapon':
-                    actor.setupWeaponTest(actionId);
-                    break;
+                    return actor.setupWeaponTest(item.id);
                 case 'psychicPower':
-                    actor.setupPowerTest(actionId);
-                    break;
+                    return actor.setupPowerTest(item.id);
                 case 'ability':
-                    const ability = actor.items.get(actionId);
-                    actor.setupAbilityRoll(ability);
-                    break;
+                    return actor.setupAbilityRoll(item);
                 default:
-                    actor.setupGenericTest(itemType);
+                    return actor.setupGenericTest(actionId);
             }
         }
 
@@ -118,8 +110,8 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @param {object} actor    The actor
          * @param {string} actionId The action id
          */
-        #handleAttributeAction (event, actor, actionId) {
-            actor.setupAttributeTest(actionId);
+        async #handleAttributeAction (event, actor, actionId) {
+            return actor.setupAttributeTest(actionId);
         }
 
         /**
@@ -129,8 +121,8 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @param {object} actor    The actor
          * @param {string} actionId The action id
          */
-        #handleSkillAction (event, actor, actionId) {
-            actor.setupSkillTest(actionId);
+        async #handleSkillAction (event, actor, actionId) {
+            return actor.setupSkillTest(actionId);
         }
 
         /**
@@ -142,11 +134,19 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          */
         async #handleItemAction (event, actor, actionId) {
             const item = actor.items.get(actionId);
+            if (!item) return;
+
+            if (this.isRenderItem()) {
+                return this.renderItem(actor, actionId);
+            }
+
             if (!this.isRightClick) {
-                item.postItem();
-            } else if (item.system.equippable) {
+                return item.postItem();
+            }
+
+            if (item.system.equippable) {
                 await item.update({ 'system.equipped': !item.system.equipped });
-                return Hooks.callAll('forceUpdateTokenActionHud');
+                Hooks.callAll('forceUpdateTokenActionHud');
             }
         }
 
@@ -157,15 +157,14 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @param {object} actor    The actor
          * @param {string} actionId The action id
          */
-        #handleConditionAction (event, actor, actionId) {
-            const condition = CONFIG.statusEffects.find(c => c.id == actionId);
+        async #handleConditionAction (event, actor, actionId) {
             if (actor.hasCondition(actionId)) {
-                actor.removeCondition(actionId);
+                await actor.removeCondition(actionId);
             } else {
-                actor.addCondition(actionId);
+                await actor.addCondition(actionId);
             }
 
-            return Hooks.callAll('forceUpdateTokenActionHud');
+            Hooks.callAll('forceUpdateTokenActionHud');
         }
 
         /**
@@ -176,17 +175,19 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @param {string} actionId The action id
          */
         async #handleUtilityAction (actor, token, actionId) {
-            const combatant = game.combat?.getCombatantByActor(actor);
+            const combat = game.combat;
+            const combatant = combat?.getCombatantsByActor(actor)[0];
+            if (!combatant) return;
+
             switch (actionId) {
                 case 'setTurn':
-                    if (!combatant?.isCurrent && !combatant?.isComplete) {
-                        game.combat.setTurn(combatant.id);
+                    if (!combatant.isCurrent && !combatant.isComplete) {
+                        await combat.setTurn(combatant.id);
                     }
                     break;
                 case 'endTurn':
-                    if (combatant?.isCurrent) {
-                        game.combat.runEndTurnScripts(combatant);
-                        combatant?.update(combatant.setComplete());
+                    if (combatant.isCurrent) {
+                        await combat.setComplete(combatant.id);
                     }
                     break;
             }
