@@ -24,7 +24,7 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
             }
 
             const controlledTokens = coreModule.api.Utils.getControlledTokens()
-                .filter((token) => this.#characterTypes.includes(token.actor?.type));
+                .filter((token) => token.actor?.isOwner && this.#characterTypes.includes(token.actor.type));
 
             // If multiple actors are selected
             for (const token of controlledTokens) {
@@ -136,17 +136,20 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
             const item = actor.items.get(actionId);
             if (!item) return;
 
+            // Right-click toggles equipped state for equippable items; checked before
+            // isRenderItem(), which is true for any unmodified right-click
+            if (this.isRightClick && item.system.equippable) {
+                await item.update({ 'system.equipped': !item.system.equipped });
+                Hooks.callAll('forceUpdateTokenActionHud');
+                return;
+            }
+
             if (this.isRenderItem()) {
                 return this.renderItem(actor, actionId);
             }
 
             if (!this.isRightClick) {
                 return item.postItem();
-            }
-
-            if (item.system.equippable) {
-                await item.update({ 'system.equipped': !item.system.equipped });
-                Hooks.callAll('forceUpdateTokenActionHud');
             }
         }
 

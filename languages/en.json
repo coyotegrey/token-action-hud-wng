@@ -2,6 +2,7 @@
   "tokenActionHud": {
     "wng": {
       "activate": "Activate",
+      "attribute": "Attribute",
       "combat": "Combat",
       "condition": "Condition",
       "conditions": "Conditions",

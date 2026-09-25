@@ -62,6 +62,9 @@ on:
     types: [published]
 
 
+permissions: {}
+
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -70,7 +73,9 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
 
       # Extract version embedded in the tag.
@@ -79,10 +84,18 @@ jobs:
       #   - "<major>.<minor>.<patch>"  (e.g., "1.2.3")
       #
       # The version will be used by later steps to fill in the value for the
-      # "version" key required for a valid module manifest.
+      # "version" key required for a valid module manifest. The tag is
+      # validated so it can be safely substituted into the manifest.
       - name: Extract Version From Tag
         id: get_version
-        uses: battila7/get-version-action@v2
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$TAG_NAME" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag '$TAG_NAME' is not in the format v<major>.<minor>.<patch>"
+            exit 1
+          fi
+          echo "version-without-v=${TAG_NAME#v}" >> "$GITHUB_OUTPUT"
 
 
       # Modify "module.json" with values specific to the release.
@@ -92,15 +105,23 @@ jobs:
       # While this does modify the manifest file in-place, the changes are not
       # commited to the repository, and only exist in the action's filesystem.
       - name: Modify Module Manifest With Release-Specific Values
-        id: sub_manifest_link_version
-        uses: cschleiden/replace-tokens@v1
-        with:
-          files: 'module.json'
         env:
-          VERSION: ${{steps.get_version.outputs.version-without-v}}
+          VERSION: ${{ steps.get_version.outputs.version-without-v }}
           URL: ${{ env.project_url }}
           MANIFEST: ${{ env.latest_manifest_url }}
           DOWNLOAD: ${{ env.release_module_url }}
+        run: |
+          sed -i \
+            -e "s|#{VERSION}#|${VERSION}|g" \
+            -e "s|#{URL}#|${URL}|g" \
+            -e "s|#{MANIFEST}#|${MANIFEST}|g" \
+            -e "s|#{DOWNLOAD}#|${DOWNLOAD}|g" \
+            module.json
+          if grep -q '#{' module.json; then
+            echo "::error::Unreplaced tokens remain in module.json"
+            exit 1
+          fi
+          jq empty module.json
 
 
       # Create a "module.zip" archive containing all the module's required files.
@@ -128,14 +149,8 @@ jobs:
 
       # Update the GitHub release with the manifest and module archive files.
       - name: Update Release With Files
-        id: create_version_release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          name: ${{ github.event.release.name }}
-          draft: ${{ github.event.release.unpublished }}
-          prerelease: ${{ github.event.release.prerelease }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: './module.json, ./module.zip'
-          tag: ${{ github.event.release.tag_name }}
-          body: ${{ github.event.release.body }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG_NAME" ./module.json ./module.zip --clobber

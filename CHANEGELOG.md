@@ -9,6 +9,11 @@
 - Attribute and skill labels now read from `game.wng.config`.
 - Added Mutations and Injuries groups.
 - The "Display Unequipped" setting now works and has proper labels.
+- Right-clicking equippable gear now toggles equipped state instead of opening the item sheet.
+- Attribute and skill actions now show their type prefix in the HUD search list.
+- Removed the unused "Rests" group, which displayed an untranslated key.
+- Multi-token actions now only apply to tokens the user owns.
+- Release workflow no longer uses third-party actions and validates the release tag.
 
 ## v1.0.2
 - Cleaned up unused files.

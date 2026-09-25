@@ -21,8 +21,9 @@ export const REQUIRED_CORE_MODULE_VERSION = '2';
  * Action types
  */
 export const ACTION_TYPE = {
+    attribute: 'tokenActionHud.wng.attribute',
     combat: 'tokenActionHud.wng.combat',
-    stats: 'tokenActionHud.wng.stats',
+    skill: 'tokenActionHud.wng.skill',
     talent: 'TYPES.Item.talent',
     gear: 'TYPES.Item.gear',
     condition: 'tokenActionHud.wng.condition',
@@ -58,7 +59,6 @@ export const GROUP = {
 
     combat: { id: 'combat', name: 'tokenActionHud.combat', type: 'system' },
     token: { id: 'token', name: 'tokenActionHud.token', type: 'system' },
-    rests: { id: 'rests', name: 'tokenActionHud.rests', type: 'system' },
     utility: { id: 'utility', name: 'tokenActionHud.utility', type: 'system' }
 };
 
