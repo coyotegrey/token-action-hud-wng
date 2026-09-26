@@ -12,8 +12,8 @@
   "flags": {},
   "version": "#{VERSION}#",
   "compatibility": {
-    "minimum": "13",
-    "verified": "14"
+    "minimum": "14",
+    "verified": "14.368"
   },
   "esmodules": [
     "./scripts/init.js"
@@ -33,37 +33,26 @@
       {
         "id": "wrath-and-glory",
         "type": "system",
-        "compatibility": [
-          {
-            "minimum": "8.0.0",
-            "verified": "8.0.0"
-          }
-        ]
+        "compatibility": {
+          "minimum": "8.0.0",
+          "verified": "8.1.2"
+        }
       }
     ],
     "requires": [
       {
         "id": "token-action-hud-core",
         "type": "module",
-        "compatibility": [
-          {
-            "minimum": "2.1.0",
-            "verified": "2.1.0"
-          }
-        ]
+        "compatibility": {
+          "minimum": "2.1.0",
+          "verified": "2.1.1"
+        }
       }
-    ],
-    "optional": [],
-    "flags": {
-      "optional": []
-    }
+    ]
   },
-  "socket": false,
   "manifest": "#{MANIFEST}#",
   "download": "#{DOWNLOAD}#",
   "license": "LICENSE",
   "readme": "README.md",
-  "protected": false,
-  "coreTranslation": false,
-  "library": false
+  "protected": false
 }

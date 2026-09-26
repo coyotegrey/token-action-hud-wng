@@ -9,17 +9,10 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
      * Extends Token Action HUD Core's ActionHandler class and builds system-defined actions for the HUD
      */
     ActionHandler = class ActionHandler extends coreModule.api.ActionHandler {
-        /**
-         * Build system actions
-         * Called by Token Action HUD Core
-         * @override
-         * @param {array} groupIds
-         */
-        #actorTypes = ['agent', 'threat', 'vehicle'];
+        #characterTypes = ['agent', 'threat'];
         #equippableTypes = ['weapon', 'armour'];
         #combatTypes = ['weapon', 'psychicPower', 'ability'];
-        #talentTypes = ['talent', 'ability', 'psychicPower'];
-        #gearTypes = ['weapon', 'armour', 'gear', 'ammo', 'weaponUpgrade', 'augmentic'];
+        #talentTypes = ['talent', 'ability', 'psychicPower', 'mutation', 'traumaticInjury', 'memorableInjury'];
         #combatActions = new Map(Object.entries({
             'determination': {'name': coreModule.api.Utils.i18n('ROLL.DETERMINATION')},
             'corruption': {'name': coreModule.api.Utils.i18n('ROLL.CORRUPTION')},
@@ -29,9 +22,13 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
             'influence': {'name': coreModule.api.Utils.i18n('ROLL.INFLUENCE')}
         }));
 
+        /**
+         * Build system actions
+         * Called by Token Action HUD Core
+         * @override
+         * @param {array} groupIds
+         */
         async buildSystemActions (groupIds) {
-            // Set actor and token variables
-            this.actors = (!this.actor) ? this._getActors() : [this.actor];
             this.actorType = this.actor?.type;
 
             // Settings
@@ -39,18 +36,13 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
 
             // Set items variable
             if (this.actor) {
-                let talents = this.actor.items.filter(i => !i.location?.value && this.#talentTypes.includes(i.type));
-                let gear = this.actor.items.filter(i => !i.location?.value && this.#gearTypes.includes(i.type));
-
                 this.items = coreModule.api.Utils.sortItemsByName(this.actor.items);
-                this.attributes = this.actor.attributes;
-                this.skills = this.actor.skills;
-                this.talents = coreModule.api.Utils.sortItemsByName(talents);
-                this.gear = coreModule.api.Utils.sortItemsByName(gear);
+                this.attributes = this.actor.attributes ?? {};
+                this.skills = this.actor.skills ?? {};
             }
 
-            if (['agent','threat'].includes(this.actorType)) {
-                this.#buildCharacterActions();
+            if (this.#characterTypes.includes(this.actorType)) {
+                await this.#buildCharacterActions();
             } else if (!this.actor) {
                 this.#buildMultipleTokenActions();
             }
@@ -80,13 +72,11 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @private
          */
         async #buildCombat () {
-            if (this.items.size === 0) return;
-
             const inventoryMap = new Map();
 
             for (const [itemId, itemData] of this.items) {
                 if (!this.#combatTypes.includes(itemData.type)) continue;
-                if (itemData.type == 'weapon' && !itemData.system.isEquipped) continue;
+                if (itemData.type === 'weapon' && !itemData.system.isEquipped) continue;
 
                 const type = itemData.type;
                 const typeMap = inventoryMap.get(type) ?? new Map();
@@ -96,9 +86,9 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
 
             for (const [type, typeMap] of inventoryMap) {
                 const actionTypeId = 'combat';
-                const groupId = 
-                    type == 'weapon' ? 'combatWeapons' : 
-                    type == 'psychicPower' ? 'combatPowers' :
+                const groupId =
+                    type === 'weapon' ? 'combatWeapons' :
+                    type === 'psychicPower' ? 'combatPowers' :
                     'combatAbilities';
                 const groupData = { id: groupId, type: 'system' };
                 const actions = this.#getItemActions(typeMap, actionTypeId);
@@ -115,34 +105,31 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @private
          */
         async #buildStats () {
-            if (this.attributes.size === 0) return;
-            if (this.skills.size === 0) return;
+            const config = game.wng?.config ?? {};
+            const statTypes = {
+                attribute: { stats: this.attributes, labels: config.attributes ?? {} },
+                skill: { stats: this.skills, labels: config.skills ?? {} }
+            };
 
-            const statTypes = {"attribute": this.attributes, "skill": this.skills};
-
-            for (const statId in statTypes) {
-                const statData = statTypes[statId];
+            for (const [statId, { stats, labels }] of Object.entries(statTypes)) {
                 const actionTypeId = statId;
+                const actionTypeName = coreModule.api.Utils.i18n(ACTION_TYPE[actionTypeId]);
                 const groupData = { id: `${statId}s`, type: 'system' };
                 const actions = [];
 
-                for (const itemId in statData) {
-                    const id = itemId;
-                    const itemData = statData[itemId];
-                    const label = itemData.label || (statId == "attribute" ? WNG.attributes[itemId] : WNG.skills[itemId]);
-                    const name = `${coreModule.api.Utils.i18n(label)} (${itemData.total})`;
-                    const actionTypeName = coreModule.api.Utils.i18n(ACTION_TYPE[actionTypeId]);
-                    const listName = `${actionTypeName ? `${actionTypeName}: ` : ''}${name}`;
-                    const encodedValue = [actionTypeId, id].join(this.delimiter);
+                for (const id of Object.keys(labels)) {
+                    const statData = stats[id];
+                    if (!statData) continue;
 
-                    const img = coreModule.api.Utils.getImage(itemData.img);
+                    const label = statData.label || labels[id];
+                    const name = `${coreModule.api.Utils.i18n(label)} (${statData.total})`;
+                    const listName = `${actionTypeName ? `${actionTypeName}: ` : ''}${name}`;
 
                     actions.push({
                         id,
                         name,
                         listName,
-                        encodedValue,
-                        img
+                        system: { actionType: actionTypeId, actionId: id }
                     });
                 }
 
@@ -155,13 +142,11 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @private
          */
         async #buildInventory () {
-            if (this.items.size === 0) return;
-
             const inventoryMap = new Map();
 
             for (const [itemId, itemData] of this.items) {
                 const type = itemData.type;
-                const equipped = itemData.equipped;
+                if (!this.displayUnequipped && this.#equippableTypes.includes(type) && !itemData.system.isEquipped) continue;
 
                 const typeMap = inventoryMap.get(type) ?? new Map();
                 typeMap.set(itemId, itemData);
@@ -187,36 +172,30 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @private
          */
         async #buildConditions () {
-            const conditions = CONFIG.statusEffects.filter((condition) => condition.id !== '');
+            // V14 changed CONFIG.statusEffects from an array to an object keyed by id; handle both
+            const conditions = Object.values(CONFIG.statusEffects).filter((condition) => condition.id);
             if (conditions.length === 0) return;
 
             const actionTypeId = 'condition';
             const actionTypeName = coreModule.api.Utils.i18n(ACTION_TYPE[actionTypeId]);
             const groupData = { id: 'conditions', type: 'system' };
-            const actions = [];
 
-            for (const conditionId in conditions) {
-                const id = conditions[conditionId].id;
-                const conditionData = conditions[conditionId];
-                const name = coreModule.api.Utils.i18n(conditionData.name);
+            const actions = conditions.map((condition) => {
+                const id = condition.id;
+                const name = coreModule.api.Utils.i18n(condition.name);
                 const listName = `${actionTypeName ? `${actionTypeName}: ` : ''}${name}`;
-                const encodedValue = [actionTypeId, id].join(this.delimiter);
+                const img = coreModule.api.Utils.getImage(condition.img);
+                const active = this.actor.statuses.has(id) ? ' active' : '';
 
-                const img = coreModule.api.Utils.getImage(conditionData.img);
-
-                const statusFound = this.actor.statuses.find(s => s == id);
-                const active = statusFound ? ' active' : '';
-                const cssClass = `toggle${active}`;
-
-                actions.push({
+                return {
                     id,
                     name,
                     listName,
-                    encodedValue,
                     img,
-                    cssClass
-                });
-            };
+                    cssClass: `toggle${active}`,
+                    system: { actionType: actionTypeId, actionId: id }
+                };
+            });
 
             this.addActions(actions, groupData);
         }
@@ -226,24 +205,27 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
          * @private
          */
         async #buildUtility () {
-            if (game.combat?.started) {
-                const combatant = game.combat.getCombatantByActor(this.actor);
-                const typeMap = new Map();
+            // Activate/deactivate relies on W&G's custom Combat class, which is not used with the optional initiative rule
+            if (!game.combat?.started || typeof game.combat.setComplete !== 'function') return;
 
-                // add activate combatant?
-                if (!combatant?.isCurrent && !combatant?.isComplete) {
-                    typeMap.set('setTurn', {'name': coreModule.api.Utils.i18n('tokenActionHud.wng.activate')});
-                }
-                // add deactivate combatant?
-                if (combatant?.isCurrent) {
-                    typeMap.set('endTurn', {'name': coreModule.api.Utils.i18n('tokenActionHud.wng.deactivate')});
-                }
+            const combatant = game.combat.getCombatantsByActor(this.actor)[0];
+            if (!combatant) return;
 
-                if (typeMap.size > 0) {
-                    const groupData = { id: 'combat', type: 'system' };
-                    const actions = this.#getItemActions(typeMap, 'utility');
-                    this.addActions(actions, groupData);
-                }
+            const typeMap = new Map();
+
+            // add activate combatant?
+            if (!combatant.isCurrent && !combatant.isComplete) {
+                typeMap.set('setTurn', {'name': coreModule.api.Utils.i18n('tokenActionHud.wng.activate')});
+            }
+            // add deactivate combatant?
+            if (combatant.isCurrent) {
+                typeMap.set('endTurn', {'name': coreModule.api.Utils.i18n('tokenActionHud.wng.deactivate')});
+            }
+
+            if (typeMap.size > 0) {
+                const groupData = { id: 'combat', type: 'system' };
+                const actions = this.#getItemActions(typeMap, 'utility');
+                this.addActions(actions, groupData);
             }
         }
 
@@ -257,23 +239,20 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
                 const name = itemData.name;
                 const actionTypeName = coreModule.api.Utils.i18n(ACTION_TYPE[actionTypeId]);
                 const listName = `${actionTypeName ? `${actionTypeName}: ` : ''}${name}`;
-                const encodedValue = [actionTypeId, id].join(this.delimiter);
-
                 const img = coreModule.api.Utils.getImage(itemData.img);
 
-                //const statusFound = this.actor.statuses.find(s => s == id);
-                const active = actionTypeId == 'gear' && itemData.system.isEquipped ? ' active' : '';
-                const cssClass = `toggle${active}`; 
+                const active = actionTypeId === 'gear' && itemData.system?.isEquipped ? ' active' : '';
+                const cssClass = `toggle${active}`;
 
                 return {
                     id,
                     name,
                     listName,
-                    encodedValue,
                     img,
-                    cssClass
-                }
-            })
+                    cssClass,
+                    system: { actionType: actionTypeId, actionId: id }
+                };
+            });
         }
     };
 });

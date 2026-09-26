@@ -2,6 +2,7 @@
   "tokenActionHud": {
     "wng": {
       "activate": "Activate",
+      "attribute": "Attribute",
       "combat": "Combat",
       "condition": "Condition",
       "conditions": "Conditions",
@@ -10,7 +11,13 @@
       "skill": "Skill",
       "stats": "Stats",
       "talents": "Talents",
-      "tests": "Tests"
+      "tests": "Tests",
+      "settings": {
+        "displayUnequipped": {
+          "name": "Display Unequipped Gear",
+          "hint": "If disabled, unequipped weapons and armour are hidden from the Gear menu."
+        }
+      }
     }
   }
 }

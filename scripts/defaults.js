@@ -41,7 +41,9 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
                 groups: [
                     { ...groups.talents, nestId: 'talents_talents' },
                     { ...groups.abilities, nestId: 'talents_abilities' },
-                    { ...groups.powers, nestId: 'talents_powers' }
+                    { ...groups.powers, nestId: 'talents_powers' },
+                    { ...groups.mutations, nestId: 'talents_mutations' },
+                    { ...groups.injuries, nestId: 'talents_injuries' }
                 ]
             },
             {
@@ -72,7 +74,6 @@ Hooks.once('tokenActionHudCoreApiReady', async (coreModule) => {
                 groups: [
                     { ...groups.combat, nestId: 'utility_combat' },
                     { ...groups.token, nestId: 'utility_token' },
-                    { ...groups.rests, nestId: 'utility_rests' },
                     { ...groups.utility, nestId: 'utility_utility' }
                 ]
             }

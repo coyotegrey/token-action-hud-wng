@@ -23,7 +23,8 @@ A module for using Token Action HUD with the Wrath & Glory system.
 **IMPORTANT** — Token Action HUD Wrath & Glory requires the [Token Action HUD Core](https://foundryvtt.com/packages/token-action-hud-core) and [Wrath & Glory](https://foundryvtt.com/packages/wrath-and-glory) modules to be installed.
 
 **Required versions:**
-- TAH W&G v0.0.1 and newer: Core v2.0, W&G v6.0
+- TAH W&G v1.1.0 and newer: Foundry VTT v14+ (verified 14.368), Token Action HUD Core v2.1.0+ (verified 2.1.1), W&G v8.0.0+ (verified 8.1.2)
+- TAH W&G v0.0.1 – v1.0.2: Core v2.0, W&G v6.0
 
 ## Recommended Modules
 

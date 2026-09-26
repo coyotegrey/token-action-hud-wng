@@ -21,8 +21,9 @@ export const REQUIRED_CORE_MODULE_VERSION = '2';
  * Action types
  */
 export const ACTION_TYPE = {
+    attribute: 'tokenActionHud.wng.attribute',
     combat: 'tokenActionHud.wng.combat',
-    stats: 'tokenActionHud.wng.stats',
+    skill: 'tokenActionHud.wng.skill',
     talent: 'TYPES.Item.talent',
     gear: 'TYPES.Item.gear',
     condition: 'tokenActionHud.wng.condition',
@@ -44,6 +45,8 @@ export const GROUP = {
     talents: { id: 'talents', name: 'TITLE.TALENTS', type: 'system' },
     abilities: { id: 'abilities', name: 'TITLE.ABILITIES', type: 'system' },
     powers: { id: 'powers', name: 'TITLE.PSYCHIC_POWERS', type: 'system' },
+    mutations: { id: 'mutations', name: 'TITLE.MUTATIONS', type: 'system' },
+    injuries: { id: 'injuries', name: 'TITLE.INJURIES', type: 'system' },
 
     armour: { id: 'armour', name: 'TYPES.Item.armour', type: 'system' },
     gear: { id: 'gear', name: 'TYPES.Item.gear', type: 'system' },
@@ -56,7 +59,6 @@ export const GROUP = {
 
     combat: { id: 'combat', name: 'tokenActionHud.combat', type: 'system' },
     token: { id: 'token', name: 'tokenActionHud.token', type: 'system' },
-    rests: { id: 'rests', name: 'tokenActionHud.rests', type: 'system' },
     utility: { id: 'utility', name: 'tokenActionHud.utility', type: 'system' }
 };
 
@@ -69,8 +71,11 @@ export const ITEM_TYPE = {
     armour: { groupId: 'armour' },
     augmentic: { groupId: 'augmetic' },
     gear: { groupId: 'gear' },
+    memorableInjury: { groupId: 'injuries' },
+    mutation: { groupId: 'mutations' },
     psychicPower: { groupId: 'powers' },
     talent: { groupId: 'talents' },
+    traumaticInjury: { groupId: 'injuries' },
     weapon: { groupId: 'weapons' },
     weaponUpgrade: { groupId: 'weaponUpgrade' }
 };
